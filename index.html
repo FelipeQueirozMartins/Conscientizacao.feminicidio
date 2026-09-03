@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Violência contra a Mulher — o que você precisa saber</title>
+<style>
+  :root{
+    --ink: #F6EEE6;
+    --ink-dim: rgba(246,238,230,0.6);
+    --line: rgba(246,238,230,0.16);
+
+    --bg-title:#0A0405;
+    --tensao:#E8A33D;      --tensao-bg:#2B1707;
+    --explosao:#E2432A;    --explosao-bg:#2E0A0A;
+    --luademel:#F1D9A3;    --luademel-bg:#1B1509;
+    --stat-bg:#170B18;     --stat-accent:#C9536B;
+    --tipos-bg:#0E1420;    --tipos-accent:#5B8DEF;
+    --invis-bg:#1B0F22;    --invis-accent:#B27CE0;
+    --lei-bg:#22090F;      --lei-accent:#C9536B;
+    --cta-bg:#0A0405;      --cta-accent:#E2432A;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; background:#050202; font-family:'Helvetica Neue',Arial,sans-serif; overflow:hidden; }
+
+  .stage-wrap{ height:100dvh; width:100vw; display:flex; align-items:center; justify-content:center; }
+
+  .phone{
+    position:relative;
+    width:100vw;
+    height:100dvh;
+    background:var(--bg-title);
+    overflow:hidden;
+    isolation:isolate;
+    container-type: inline-size;
+    container-name: phone;
+  }
+  @media (min-width:700px){
+    .phone{
+      width:min(100vw,430px);
+      height:min(100dvh,764px);
+      aspect-ratio:9/16;
+      border-radius:26px;
+      border:6px solid #161616;
+      box-shadow:0 30px 90px rgba(0,0,0,0.65);
+    }
+  }
+
+  /* film-grain overlay for texture */
+  .grain{
+    position:absolute; inset:-20%;
+    z-index:25;
+    opacity:0.05;
+    pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    mix-blend-mode:overlay;
+  }
+
+  /* vignette for depth */
+  .vignette{
+    position:absolute; inset:0; z-index:24; pointer-events:none;
+    background:radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(0,0,0,0.55) 100%);
+  }
+
+  /* corner frame marks — video-editor viewfinder feel */
+  .corner{ position:absolute; width:16px; height:16px; z-index:26; opacity:0.5; pointer-events:none; }
+  .corner::before,.corner::after{ content:''; position:absolute; background:var(--ink); }
+  .corner.tl{ top:14px; left:14px; } .corner.tr{ top:14px; right:14px; }
+  .corner.bl{ bottom:14px; left:14px; } .corner.br{ bottom:14px; right:14px; }
+  .corner::before{ width:100%; height:1.5px; top:0; left:0; }
+  .corner::after{ width:1.5px; height:100%; top:0; left:0; }
+  .corner.tr::before,.corner.tr::after{ left:auto; right:0; }
+  .corner.bl::before,.corner.bl::after{ top:auto; bottom:0; }
+  .corner.br::before,.corner.br::after{ top:auto; bottom:0; left:auto; right:0; }
+
+  /* floating decorative blobs per scene */
+  .blob{ position:absolute; border-radius:50%; filter:blur(55px); opacity:0.45; z-index:0; animation:drift 14s ease-in-out infinite; }
+  @keyframes drift{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(18px,-22px) scale(1.12); } }
+
+  /* decorative thin ring */
+  .ring-deco{ position:absolute; border:1px solid var(--line); border-radius:50%; z-index:0; animation:spin 40s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  @keyframes spinRev{ to{ transform:rotate(-360deg); } }
+
+  /* ambient particle field — floats through every scene */
+  .particles{ position:absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
+  .particle{ position:absolute; border-radius:50%; background:var(--ink); opacity:0.28; animation:floatUp linear infinite; }
+  @keyframes floatUp{
+    0%{ transform:translateY(0) translateX(0); opacity:0; }
+    10%{ opacity:0.35; }
+    90%{ opacity:0.2; }
+    100%{ transform:translateY(-110vh) translateX(var(--drift,20px)); opacity:0; }
+  }
+
+  /* diagonal light sweep across whole phone */
+  .light-sweep{
+    position:absolute; inset:-50%; z-index:2; pointer-events:none;
+    background:linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.05) 48%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.05) 52%, transparent 60%);
+    animation:sweep 9s ease-in-out infinite;
+  }
+  @keyframes sweep{ 0%,100%{ transform:translateX(-15%); } 50%{ transform:translateX(15%); } }
+
+  /* faint rotating dashed halo, reused behind big focal elements */
+  .halo{ position:absolute; inset:0; margin:auto; aspect-ratio:1; border:1px dashed var(--line); border-radius:50%; z-index:0; }
+  .halo.spin{ animation:spin 55s linear infinite; }
+  .halo.spinrev{ animation:spinRev 70s linear infinite; }
+
+  /* corner accent glow per scene mood */
+  .mood-glow{ position:absolute; inset:0; z-index:0; opacity:0.5; pointer-events:none; }
+
+  /* fine dot-grid texture, subtle */
+  .dotgrid{
+    position:absolute; inset:0; z-index:0; opacity:0.5; pointer-events:none;
+    background-image:radial-gradient(rgba(246,238,230,0.09) 1px, transparent 1px);
+    background-size:22px 22px;
+    -webkit-mask-image:radial-gradient(ellipse at 50% 45%, black 0%, transparent 72%);
+    mask-image:radial-gradient(ellipse at 50% 45%, black 0%, transparent 72%);
+  }
+
+  .scene{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:9% 9%; text-align:center;
+    opacity:0; pointer-events:none;
+    transition:opacity 1.1s ease;
+  }
+  .scene.active{ opacity:1; pointer-events:auto; }
+
+  /* ---------- chrome: progress / chapter chip / timestamp ---------- */
+  .progress-track{ position:absolute; top:14px; left:5%; width:90%; height:3px; background:rgba(246,238,230,0.2); border-radius:2px; overflow:hidden; z-index:30; }
+  .progress-fill{ height:100%; width:0%; background:var(--ink); border-radius:2px; }
+
+  .chapter-chip{
+    position:absolute; top:26px; left:5%; z-index:30;
+    font-size:12px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--ink-dim); opacity:0; transition:opacity 0.6s ease;
+    display:flex; align-items:center; gap:6px;
+  }
+  .chapter-chip .dot{ width:5px; height:5px; border-radius:50%; background:var(--cta-accent); }
+
+  .timestamp{
+    position:absolute; bottom:16px; right:5%; z-index:30;
+    font-size:12.5px; font-variant-numeric:tabular-nums; letter-spacing:0.05em;
+    color:var(--ink-dim); font-family:'Courier New',monospace;
+  }
+
+  /* ---------- TITLE ---------- */
+  #s-title{ background:var(--bg-title); }
+  .title-eyebrow{ font-size:13.5px; letter-spacing:0.35em; text-transform:uppercase; color:var(--ink-dim); margin-bottom:20px; opacity:0; }
+  .title-main{ font-family:Arial Black, Arial, sans-serif; font-weight:900; font-size:15.5cqw; line-height:0.94; letter-spacing:-0.01em; color:var(--ink); text-transform:uppercase; z-index:2; }
+  .title-main span{ display:block; overflow:hidden; }
+  .title-main span b{ display:block; transform:translateY(115%); opacity:0; }
+  .title-main .accent{ color:var(--cta-accent); }
+  .title-sub{ margin-top:24px; font-size:16px; color:var(--ink-dim); opacity:0; z-index:2; }
+  .title-line{ width:40px; height:2px; background:var(--cta-accent); margin:22px auto 0; transform:scaleX(0); }
+
+  /* ---------- STAT SCENE ---------- */
+  #s-stat{ background:var(--stat-bg); }
+  #s-stat .blob1{ width:220px; height:220px; background:var(--stat-accent); top:-40px; left:-60px; }
+  #s-stat .blob2{ width:180px; height:180px; background:#5B8DEF; bottom:-30px; right:-50px; }
+  .stat-eyebrow{ font-size:13.5px; letter-spacing:0.3em; text-transform:uppercase; color:var(--stat-accent); opacity:0; z-index:2; }
+  .stat-ring{ width:64cqw; max-width:270px; aspect-ratio:1; border:1px dashed var(--line); border-radius:50%; position:absolute; z-index:0; animation:spin 50s linear infinite; }
+  .stat-number{ font-family:Arial Black, Arial, sans-serif; font-size:25cqw; line-height:0.9; color:var(--ink); margin:16px 0 4px; opacity:0; transform:scale(0.85); z-index:2; }
+  .stat-caption{ font-size:5.6cqw; max-width:320px; color:var(--ink); font-weight:600; line-height:1.35; opacity:0; z-index:2; margin-bottom:6%; }
+  .stat-bullets{ list-style:none; width:100%; max-width:320px; z-index:2; }
+  .stat-bullets li{ font-size:4.7cqw; color:var(--ink-dim); padding:2cqw 0 2cqw 22px; text-align:left; border-top:1px solid var(--line); opacity:0; transform:translateX(-16px); position:relative; }
+  .stat-bullets li:last-child{ border-bottom:1px solid var(--line); }
+  .stat-bullets li::before{ content:'—'; position:absolute; left:0; color:var(--stat-accent); }
+  .stat-source{ margin-top:5%; font-size:11px; letter-spacing:0.05em; color:var(--ink-dim); opacity:0; z-index:2; }
+
+  /* ---------- TIPOS SCENE ---------- */
+  #s-tipos{ background:var(--tipos-bg); justify-content:flex-start; padding-top:16%; }
+  #s-tipos .blob1{ width:200px; height:200px; background:var(--tipos-accent); top:20%; right:-70px; }
+  .tipos-eyebrow{ font-size:13.5px; letter-spacing:0.3em; text-transform:uppercase; color:var(--tipos-accent); opacity:0; z-index:2; }
+  .tipos-title{ font-family:Arial Black, Arial, sans-serif; text-transform:uppercase; font-size:11.8cqw; line-height:0.98; color:var(--ink); margin:12px 0 7%; opacity:0; z-index:2; }
+  .tipos-grid{ width:100%; max-width:340px; z-index:2; }
+  .tipo-row{ display:flex; align-items:baseline; gap:12px; padding:2.4cqw 0; border-top:1px solid var(--line); opacity:0; transform:translateY(10px); text-align:left; }
+  .tipo-row:last-child{ border-bottom:1px solid var(--line); }
+  .tipo-row .idx{ font-family:Arial Black, sans-serif; font-size:6.2cqw; color:var(--tipos-accent); min-width:11%; }
+  .tipo-row .txt b{ display:block; font-size:5cqw; color:var(--ink); font-weight:700; }
+  .tipo-row .txt span{ display:block; font-size:3.9cqw; color:var(--ink-dim); margin-top:2px; }
+
+  /* ---------- INVISIVEIS SCENE ---------- */
+  #s-invis{ background:var(--invis-bg); }
+  #s-invis .blob1{ width:230px; height:230px; background:var(--invis-accent); bottom:-60px; left:-60px; }
+  .invis-eyebrow{ font-size:13.5px; letter-spacing:0.3em; text-transform:uppercase; color:var(--invis-accent); opacity:0; z-index:2; }
+  .invis-title{ font-family:Arial Black, Arial, sans-serif; text-transform:uppercase; font-size:12cqw; line-height:0.96; color:var(--ink); margin:12px 0 8%; opacity:0; z-index:2; }
+  .invis-title em{ font-style:normal; color:var(--invis-accent); }
+  .invis-tags{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:340px; z-index:2; margin-bottom:6%; }
+  .invis-tags span{ font-size:4.2cqw; padding:2cqw 3.6cqw; border:1px solid var(--line); border-radius:30px; color:var(--ink); opacity:0; transform:scale(0.85); }
+  .invis-note{ font-size:4.7cqw; color:var(--ink-dim); max-width:320px; z-index:2; opacity:0; line-height:1.4; }
+
+  /* ---------- CYCLE SCENES ---------- */
+  #s-tensao{ background:var(--tensao-bg); }
+  #s-explosao{ background:var(--explosao-bg); }
+  #s-luademel{ background:var(--luademel-bg); }
+  .cycle-wrap{ position:relative; width:44cqw; max-width:200px; aspect-ratio:1; margin-bottom:6%; z-index:2; }
+  .cycle-wrap svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .cycle-track{ fill:none; stroke:rgba(246,238,230,0.12); stroke-width:8; }
+  .cycle-arc{ fill:none; stroke-width:8; stroke-linecap:round; stroke-dasharray:251.2; stroke-dashoffset:251.2; transition:stroke-dashoffset 2.4s ease; }
+  #arc-tensao{ stroke:var(--tensao); } #arc-explosao{ stroke:var(--explosao); } #arc-luademel{ stroke:var(--luademel); }
+  .cycle-label{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; }
+  .cycle-label .num{ font-family:Arial Black, sans-serif; font-size:32px; color:var(--ink); }
+  .cycle-label .of{ font-size:10px; letter-spacing:0.2em; color:var(--ink-dim); margin-top:2px; }
+  .phase-name{ font-family:Arial Black, Arial, sans-serif; text-transform:uppercase; font-size:13cqw; line-height:0.95; letter-spacing:-0.01em; color:var(--ink); opacity:0; transform:translateY(26px); margin-bottom:4%; z-index:2; }
+  #s-tensao .phase-name{ color:var(--tensao); } #s-explosao .phase-name{ color:var(--explosao); }
+  #s-luademel .phase-name{
+    background: linear-gradient(100deg, #FFFFFF 0%, #F6E7C4 45%, #D9AE5C 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .bullets{ list-style:none; width:100%; max-width:320px; z-index:2; }
+  .bullets li{ font-size:5cqw; color:var(--ink); padding:2.4cqw 0; border-top:1px solid var(--line); opacity:0; transform:translateX(-16px); text-align:left; }
+  .bullets li:last-child{ border-bottom:1px solid var(--line); }
+  .repeat-flash{ position:absolute; inset:0; background:var(--explosao); display:flex; align-items:center; justify-content:center; opacity:0; z-index:10; }
+  .repeat-flash span{ font-family:Arial Black, sans-serif; font-size:10.5cqw; color:#1A0505; text-transform:uppercase; text-align:center; padding:0 8%; }
+
+  /* ---------- LEI SCENE ---------- */
+  #s-lei{ background:var(--lei-bg); justify-content:flex-start; padding-top:12%; }
+  #s-lei .blob1{ width:210px; height:210px; background:var(--lei-accent); top:-50px; right:-60px; }
+  .lei-eyebrow{ font-size:13.5px; letter-spacing:0.3em; text-transform:uppercase; color:var(--lei-accent); opacity:0; z-index:2; }
+  .lei-title{ font-family:Arial Black, Arial, sans-serif; text-transform:uppercase; font-size:11.8cqw; line-height:0.95; color:var(--ink); margin:10px 0 5%; opacity:0; z-index:2; }
+  .lei-title em{ font-style:normal; color:var(--lei-accent); }
+  .lei-bullets{ list-style:none; width:100%; text-align:left; margin-bottom:5%; z-index:2; }
+  .lei-bullets li{ font-size:4.3cqw; color:var(--ink-dim); padding:1.9cqw 0; opacity:0; transform:translateY(10px); }
+  .lei-bullets li b{ color:var(--ink); font-weight:700; }
+  .hotline-row{ display:flex; gap:6cqw; margin-top:auto; margin-bottom:6%; z-index:2; }
+  .hotline{ opacity:0; transform:translateY(14px); }
+  .hotline .n{ font-family:Arial Black, sans-serif; font-size:16cqw; color:var(--ink); line-height:1; }
+  .hotline .l{ font-size:11.5px; letter-spacing:0.08em; color:var(--ink-dim); text-transform:uppercase; margin-top:4px; }
+
+  /* ---------- CTA / CLOSING SCENE ---------- */
+  #s-cta{ background:var(--cta-bg); }
+  .cta-ring{ width:70cqw; max-width:290px; aspect-ratio:1; border:1px solid var(--line); border-radius:50%; position:absolute; z-index:0; animation:spin 60s linear infinite reverse; }
+  .cta-ring2{ width:56cqw; max-width:230px; aspect-ratio:1; border:1px dashed var(--line); border-radius:50%; position:absolute; z-index:0; animation:spin 45s linear infinite; }
+  .cta-line{ font-family:Arial Black, Arial, sans-serif; text-transform:uppercase; font-size:11.8cqw; line-height:1.02; color:var(--ink); opacity:0; z-index:2; }
+  .cta-line .hl{ color:var(--cta-accent); }
+  .cta-sub{ margin-top:18px; font-size:4.7cqw; color:var(--ink-dim); max-width:290px; opacity:0; z-index:2; line-height:1.4; }
+  .cta-hotlines{ display:flex; gap:8cqw; margin-top:9%; z-index:2; }
+  .cta-hotlines .hl-item{ opacity:0; transform:translateY(12px); text-align:center; }
+  .cta-hotlines .hl-item .n{ font-family:Arial Black, sans-serif; font-size:13.5cqw; color:var(--ink); }
+  .cta-hotlines .hl-item .l{ font-size:10.5px; letter-spacing:0.08em; color:var(--ink-dim); text-transform:uppercase; }
+  .cta-signature{ margin-top:9%; font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--ink-dim); opacity:0; z-index:2; }
+
+  /* ---------- start / replay layers ---------- */
+  .start-layer,.replay-layer{ position:absolute; inset:0; z-index:40; background:#050202; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:10%; }
+  .start-layer.hidden{ display:none; }
+  .replay-layer{ background:rgba(5,2,2,0.94); opacity:0; pointer-events:none; transition:opacity 0.5s ease; }
+  .replay-layer.show{ opacity:1; pointer-events:auto; }
+  .start-eyebrow{ font-size:13px; letter-spacing:0.3em; text-transform:uppercase; color:var(--ink-dim); margin-bottom:16px; }
+  .start-title{ font-family:Arial Black, Arial, sans-serif; text-transform:uppercase; font-size:12cqw; line-height:0.95; color:var(--ink); margin-bottom:30px; }
+  .start-title .accent{ color:var(--cta-accent); }
+  .play-btn{ width:74px; height:74px; border-radius:50%; background:var(--ink); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .play-btn svg{ width:26px; height:26px; margin-left:3px; }
+  .start-hint{ margin-top:22px; font-size:13.5px; color:var(--ink-dim); }
+  .replay-btn{ margin-top:20px; padding:12px 26px; background:transparent; border:1px solid var(--ink); color:var(--ink); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; border-radius:30px; cursor:pointer; }
+
+
+  /* ---------- INTRO VIDEO SCENE ---------- */
+  #s-video{ padding:0; background:#000; }
+  #s-video video{ width:100%; height:100%; object-fit:cover; }
+  .video-tag{
+    position:absolute; top:26px; left:5%; z-index:30;
+    font-size:12px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--ink); opacity:0; transition:opacity 0.6s ease;
+    display:flex; align-items:center; gap:6px;
+  }
+  .video-tag .dot{ width:6px; height:6px; border-radius:50%; background:#E2432A; animation:recPulse 1.2s ease-in-out infinite; }
+  @keyframes recPulse{ 0%,100%{ opacity:1; } 50%{ opacity:0.25; } }
+  .video-tap{
+    position:absolute; inset:0; z-index:35; display:none;
+    align-items:center; justify-content:center; background:rgba(0,0,0,0.35);
+    color:var(--ink); font-size:14px; letter-spacing:0.08em; text-transform:uppercase;
+    cursor:pointer;
+  }
+  .video-tap.show{ display:flex; }
+
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:0.01ms !important; transition-duration:0.01ms !important; } }
+</style>
+</head>
+<body>
+
+<div class="stage-wrap">
+  <div class="phone" id="phone">
+
+    <div class="dotgrid"></div>
+    <div class="particles" id="particles"></div>
+    <div class="light-sweep"></div>
+    <div class="grain"></div>
+    <div class="vignette"></div>
+    <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="chapter-chip" id="chapterChip"><span class="dot"></span><span id="chapterText">Capítulo 01 / 08</span></div>
+    <div class="timestamp" id="timestamp">00:00 / 01:28</div>
+
+    <!-- 0: TITLE -->
+    <div class="scene" id="s-title">
+      <div class="halo spin" style="width:78cqw;max-width:320px;"></div>
+      <div class="halo spinrev" style="width:60cqw;max-width:250px;border-color:rgba(226,67,42,0.25);"></div>
+      <div class="blob" style="width:200px;height:200px;background:#E2432A;top:-50px;right:-60px;"></div>
+      <div class="blob" style="width:160px;height:160px;background:#5B8DEF;bottom:-40px;left:-50px;animation-delay:-6s;"></div>
+      <div class="title-eyebrow" id="t-eyebrow">Você precisa entender</div>
+      <h1 class="title-main">
+        <span><b>VIOLÊNCIA</b></span>
+        <span><b>CONTRA A <span class="accent">MULHER</span></b></span>
+      </h1>
+      <div class="title-line" id="titleLine"></div>
+      <div class="title-sub" id="t-sub">tipos, sinais, o ciclo e a lei que protege</div>
+    </div>
+
+    <!-- 1: STAT -->
+    <div class="scene" id="s-stat">
+      <div class="blob blob1"></div><div class="blob blob2"></div>
+      <div class="stat-ring"></div>
+      <div class="stat-eyebrow">Números que assustam</div>
+      <div class="stat-number" id="statNumber">1.571</div>
+      <div class="stat-caption">mulheres foram vítimas de feminicídio no Brasil em 2025</div>
+      <ul class="stat-bullets" id="statList">
+        <li>4º ano seguido de recorde no país</li>
+        <li>8 em cada 10 casos cometidos por parceiro ou ex</li>
+        <li>Maioria das mortes acontece dentro de casa</li>
+      </ul>
+      <div class="stat-source">Fonte: Fórum Brasileiro de Segurança Pública, 2026</div>
+    </div>
+
+    <!-- 2: TIPOS DE VIOLÊNCIA -->
+    <div class="scene" id="s-tipos">
+      <div class="blob blob1"></div>
+      <div class="blob" style="width:150px;height:150px;background:#5B8DEF;bottom:-30px;left:-40px;animation-delay:-4s;"></div>
+      <div class="halo spinrev" style="width:85cqw;max-width:340px;top:-10%;"></div>
+      <div class="tipos-eyebrow">Lei Maria da Penha prevê</div>
+      <h2 class="tipos-title">5 tipos de<br>violência</h2>
+      <div class="tipos-grid" id="tiposGrid">
+        <div class="tipo-row"><div class="idx">01</div><div class="txt"><b>Física</b><span>qualquer conduta que ofenda a integridade corporal</span></div></div>
+        <div class="tipo-row"><div class="idx">02</div><div class="txt"><b>Psicológica</b><span>ameaças, humilhação e controle do comportamento</span></div></div>
+        <div class="tipo-row"><div class="idx">03</div><div class="txt"><b>Sexual</b><span>constranger a presenciar ou manter relação não desejada</span></div></div>
+        <div class="tipo-row"><div class="idx">04</div><div class="txt"><b>Patrimonial</b><span>reter, destruir bens, documentos ou dinheiro</span></div></div>
+        <div class="tipo-row"><div class="idx">05</div><div class="txt"><b>Moral</b><span>calúnia, difamação e injúria</span></div></div>
+      </div>
+    </div>
+
+    <!-- 3: VIOLÊNCIAS INVISÍVEIS -->
+    <div class="scene" id="s-invis">
+      <div class="blob blob1"></div>
+      <div class="blob" style="width:170px;height:170px;background:#5B8DEF;top:-40px;right:-50px;animation-delay:-8s;"></div>
+      <div class="halo spin" style="width:90cqw;max-width:360px;"></div>
+      <div class="invis-eyebrow">Nem toda violência deixa marca</div>
+      <h2 class="invis-title">Violências<br><em>invisíveis</em></h2>
+      <div class="invis-tags" id="invisTags">
+        <span>Gaslighting</span>
+        <span>Mansplaining</span>
+        <span>Manterrupting</span>
+        <span>Controle financeiro</span>
+        <span>Isolamento social</span>
+        <span>Discurso de ódio digital</span>
+      </div>
+      <div class="invis-note">Fazem a mulher duvidar da própria percepção da realidade — e por isso são as mais difíceis de identificar</div>
+    </div>
+
+    <!-- 4: TENSÃO -->
+    <div class="scene" id="s-tensao">
+      <div class="blob" style="width:190px;height:190px;background:var(--tensao);top:-40px;left:-50px;"></div>
+      <div class="blob" style="width:140px;height:140px;background:var(--tensao);bottom:-30px;right:-40px;animation-delay:-5s;"></div>
+      <div class="halo spinrev" style="width:88cqw;max-width:340px;border-color:rgba(232,163,61,0.3);"></div>
+      <div class="cycle-wrap">
+        <svg viewBox="0 0 90 90"><circle class="cycle-track" cx="45" cy="45" r="40"/><circle class="cycle-arc" id="arc-tensao" cx="45" cy="45" r="40"/></svg>
+        <div class="cycle-label"><div class="num">1</div><div class="of">DE 3</div></div>
+      </div>
+      <h2 class="phase-name">Tensão</h2>
+      <ul class="bullets" id="p1-list">
+        <li>Clima de medo e cobranças constantes</li>
+        <li>Ciúmes excessivo e controle do dia a dia</li>
+        <li>Pequenas ofensas que viram "normais"</li>
+      </ul>
+    </div>
+
+    <!-- 5: EXPLOSÃO -->
+    <div class="scene" id="s-explosao">
+      <div class="blob" style="width:220px;height:220px;background:var(--explosao);top:-50px;right:-60px;"></div>
+      <div class="blob" style="width:160px;height:160px;background:var(--explosao);bottom:-40px;left:-50px;animation-delay:-3s;"></div>
+      <div class="halo spin" style="width:92cqw;max-width:360px;border-color:rgba(226,67,42,0.35);"></div>
+      <div class="cycle-wrap">
+        <svg viewBox="0 0 90 90"><circle class="cycle-track" cx="45" cy="45" r="40"/><circle class="cycle-arc" id="arc-explosao" cx="45" cy="45" r="40"/></svg>
+        <div class="cycle-label"><div class="num">2</div><div class="of">DE 3</div></div>
+      </div>
+      <h2 class="phase-name">Explosão</h2>
+      <ul class="bullets" id="p2-list">
+        <li>Agressão verbal, física ou psicológica</li>
+        <li>O ponto mais grave do ciclo</li>
+        <li>É aqui que a violência fica visível</li>
+      </ul>
+      <div class="repeat-flash" id="flashRepeat"><span>E o ciclo se repete.</span></div>
+    </div>
+
+    <!-- 6: LUA DE MEL -->
+    <div class="scene" id="s-luademel">
+      <div class="blob" style="width:190px;height:190px;background:var(--luademel);top:-40px;left:-50px;"></div>
+      <div class="blob" style="width:150px;height:150px;background:var(--luademel);bottom:-30px;right:-40px;animation-delay:-7s;"></div>
+      <div class="halo spinrev" style="width:88cqw;max-width:340px;border-color:rgba(241,217,163,0.35);"></div>
+      <div class="cycle-wrap">
+        <svg viewBox="0 0 90 90"><circle class="cycle-track" cx="45" cy="45" r="40"/><circle class="cycle-arc" id="arc-luademel" cx="45" cy="45" r="40"/></svg>
+        <div class="cycle-label"><div class="num">3</div><div class="of">DE 3</div></div>
+      </div>
+      <h2 class="phase-name">Lua de mel</h2>
+      <ul class="bullets" id="p3-list">
+        <li>Pedidos de desculpa e promessas de mudança</li>
+        <li>Falsa sensação de calma...</li>
+        <li>...até o ciclo recomeçar, cada vez mais forte</li>
+      </ul>
+    </div>
+
+    <!-- 7: LEI MARIA DA PENHA -->
+    <div class="scene" id="s-lei">
+      <div class="blob blob1"></div>
+      <div class="blob" style="width:160px;height:160px;background:var(--lei-accent);bottom:-30px;left:-40px;animation-delay:-6s;"></div>
+      <div class="halo spin" style="width:80cqw;max-width:320px;top:-6%;border-color:rgba(201,83,107,0.3);"></div>
+      <div class="lei-eyebrow">Lei 11.340/2006 · quase 20 anos</div>
+      <h2 class="lei-title">Lei <em>Maria</em><br>da Penha</h2>
+      <ul class="lei-bullets" id="lei-list">
+        <li><b>Medidas protetivas de urgência</b> — afastamento e proibição de contato com o agressor</li>
+        <li><b>Feminicídio virou crime autônomo</b> desde a Lei 14.994/2024</li>
+        <li><b>Cobre os 5 tipos de violência</b> vistos no capítulo 2</li>
+      </ul>
+      <div class="hotline-row" id="hotlineRow">
+        <div class="hotline"><div class="n">180</div><div class="l">Central de Atendimento</div></div>
+        <div class="hotline"><div class="n">190</div><div class="l">Polícia Militar</div></div>
+      </div>
+    </div>
+
+    <!-- 8: CTA / CLOSING -->
+    <div class="scene" id="s-cta">
+      <div class="blob" style="width:220px;height:220px;background:var(--cta-accent);top:-50px;right:-60px;opacity:0.3;"></div>
+      <div class="blob" style="width:180px;height:180px;background:#5B8DEF;bottom:-40px;left:-50px;opacity:0.25;animation-delay:-9s;"></div>
+      <div class="cta-ring"></div><div class="cta-ring2"></div>
+      <div class="halo spin" style="width:96cqw;max-width:380px;"></div>
+      <div class="cta-line" id="ctaLine1">Isso não é<br><span class="hl">normal.</span></div>
+      <div class="cta-sub" id="ctaSub">Nenhuma mulher deveria conviver com medo dentro da própria casa</div>
+      <div class="cta-hotlines" id="ctaHotlines">
+        <div class="hl-item"><div class="n">180</div><div class="l">Denúncia</div></div>
+        <div class="hl-item"><div class="n">190</div><div class="l">Emergência</div></div>
+      </div>
+      <div class="cta-signature" id="ctaSignature">Prevenção da violência de gênero · CIEE</div>
+    </div>
+
+    <!-- 9: INTRO VIDEO — plays right after tapping play, before the animated vinheta.
+         Points to video.mp4, which must sit in the same folder/deploy as this HTML file.
+         If your Netlify filename is different, update the src below to match. -->
+    <div class="scene" id="s-video">
+      <div class="video-tag" id="videoTag"><span class="dot"></span><span>Introdução</span></div>
+      <video id="introVideo" playsinline webkit-playsinline preload="auto">
+        <source src="video.mp4" type="video/mp4">
+      </video>
+      <div class="video-tap" id="videoTap">▶ Toque para continuar</div>
+    </div>
+
+    <!-- START LAYER -->
+    <div class="start-layer" id="startLayer">
+      <div class="start-eyebrow">Violência contra a mulher</div>
+      <div class="start-title">Toque para<br><span class="accent">assistir</span></div>
+      <button class="play-btn" id="playBtn" aria-label="Assistir">
+        <svg viewBox="0 0 24 24" fill="#050202"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <div class="start-hint">~1min45s · com som</div>
+    </div>
+
+    <!-- REPLAY LAYER -->
+    <div class="replay-layer" id="replayLayer">
+      <div class="start-eyebrow">Fim</div>
+      <div class="start-title">Assistir<br>de novo?</div>
+      <button class="replay-btn" id="replayBtn">▶ Reproduzir novamente</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  // seed ambient floating particles across the whole video
+  (function seedParticles(){
+    const wrap = document.getElementById('particles');
+    const n = 16;
+    for(let i=0;i<n;i++){
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = 2 + Math.random()*4;
+      const left = Math.random()*100;
+      const dur = 10 + Math.random()*14;
+      const delay = -Math.random()*20;
+      const drift = (Math.random()*60-30).toFixed(0)+'px';
+      p.style.width = size+'px';
+      p.style.height = size+'px';
+      p.style.left = left+'%';
+      p.style.bottom = '-5%';
+      p.style.setProperty('--drift', drift);
+      p.style.animationDuration = dur+'s';
+      p.style.animationDelay = delay+'s';
+      wrap.appendChild(p);
+    }
+  })();
+
+  const scenes = {
+    title: document.getElementById('s-title'),
+    stat: document.getElementById('s-stat'),
+    tipos: document.getElementById('s-tipos'),
+    invis: document.getElementById('s-invis'),
+    tensao: document.getElementById('s-tensao'),
+    explosao: document.getElementById('s-explosao'),
+    luademel: document.getElementById('s-luademel'),
+    lei: document.getElementById('s-lei'),
+    cta: document.getElementById('s-cta'),
+    video: document.getElementById('s-video'),
+  };
+  const chapters = [
+    null,
+    'Capítulo 01 / 08 — Abertura',
+    'Capítulo 02 / 08 — O tamanho do problema',
+    'Capítulo 03 / 08 — Tipos de violência',
+    'Capítulo 04 / 08 — Violências invisíveis',
+    'Capítulo 05 / 08 — Ciclo: tensão',
+    'Capítulo 06 / 08 — Ciclo: explosão',
+    'Capítulo 07 / 08 — Ciclo: lua de mel',
+    'Capítulo 08 / 08 — Lei Maria da Penha',
+  ];
+
+  const startLayer = document.getElementById('startLayer');
+  const replayLayer = document.getElementById('replayLayer');
+  const playBtn = document.getElementById('playBtn');
+  const replayBtn = document.getElementById('replayBtn');
+  const progressFill = document.getElementById('progressFill');
+  const chapterChip = document.getElementById('chapterChip');
+  const chapterText = document.getElementById('chapterText');
+  const timestampEl = document.getElementById('timestamp');
+
+  const introVideo = document.getElementById('introVideo');
+  const videoTag = document.getElementById('videoTag');
+  const videoTap = document.getElementById('videoTap');
+  const TOTAL = 90000; // ~90s of vinheta (starts after the intro video finishes)
+
+  let audioCtx = null;
+  let timers = [];
+  let tsInterval = null;
+  let startedAt = 0;
+
+  function clearAll(){ timers.forEach(t=>clearTimeout(t)); timers=[]; if(tsInterval) clearInterval(tsInterval); }
+  function at(ms, fn){ timers.push(setTimeout(fn, ms)); }
+
+  function showScene(key){
+    Object.values(scenes).forEach(s=>s.classList.remove('active'));
+    scenes[key].classList.add('active');
+  }
+
+  function setChapter(i){
+    chapterChip.style.opacity = 0;
+    setTimeout(()=>{ chapterText.textContent = chapters[i]; chapterChip.style.opacity = 1; }, 250);
+  }
+
+  function revealEl(el, delay, dur){
+    at(delay, ()=>{
+      el.style.transition = `opacity ${dur||0.8}s ease, transform ${dur||0.8}s cubic-bezier(.2,.8,.2,1)`;
+      el.style.opacity = 1;
+      el.style.transform = 'translate(0,0) scale(1)';
+    });
+  }
+
+  function staggerList(container, selector, baseDelay, step, withSound){
+    const items = container.querySelectorAll(selector);
+    items.forEach((li,i)=>{
+      at(baseDelay + i*step, ()=>{
+        li.style.transition = 'opacity 0.7s ease, transform 0.7s cubic-bezier(.2,.8,.2,1)';
+        li.style.opacity = 1;
+        li.style.transform = 'translate(0,0) scale(1)';
+        if(withSound) pop(0, 520 + i*70);
+      });
+    });
+  }
+
+  function fmtTime(ms){
+    const s = Math.max(0, Math.floor(ms/1000));
+    const m = Math.floor(s/60);
+    const r = s%60;
+    return String(m).padStart(2,'0')+':'+String(r).padStart(2,'0');
+  }
+
+  /* ============ AUDIO: generic "coringa" stock-style SFX, all synthesized ============ */
+  function ensureAudio(){
+    if(!audioCtx){ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
+  }
+
+  function noiseBuffer(dur){
+    const bufferSize = audioCtx.sampleRate * dur;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++){ data[i] = Math.random()*2-1; }
+    return buffer;
+  }
+
+  // whoosh transition sound (bandpass-swept noise) — used between chapters
+  function whoosh(startT, dur, peakGain){
+    if(!audioCtx) return;
+    const src = audioCtx.createBufferSource();
+    src.buffer = noiseBuffer(dur);
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.Q.value = 1.1;
+    filter.frequency.setValueAtTime(300, audioCtx.currentTime+startT);
+    filter.frequency.exponentialRampToValueAtTime(4200, audioCtx.currentTime+startT+dur*0.55);
+    filter.frequency.exponentialRampToValueAtTime(500, audioCtx.currentTime+startT+dur);
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0, audioCtx.currentTime+startT);
+    gain.gain.linearRampToValueAtTime(peakGain, audioCtx.currentTime+startT+dur*0.35);
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+startT+dur);
+    src.connect(filter).connect(gain).connect(audioCtx.destination);
+    src.start(audioCtx.currentTime+startT);
+  }
+
+  // two-tone notification "ding" — used for stat / fact reveals
+  function ding(startT, gainMul){
+    if(!audioCtx) return;
+    [1318.5, 1760].forEach((f,i)=>{
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      gain.gain.setValueAtTime(0, audioCtx.currentTime+startT+i*0.09);
+      gain.gain.linearRampToValueAtTime(0.08*(gainMul||1), audioCtx.currentTime+startT+i*0.09+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+startT+i*0.09+0.5);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime+startT+i*0.09);
+      osc.stop(audioCtx.currentTime+startT+i*0.09+0.55);
+    });
+  }
+
+  // short "pop" blip for each bullet/tag appearing
+  function pop(startT, freq){
+    if(!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime+startT);
+    osc.frequency.exponentialRampToValueAtTime(freq*1.6, audioCtx.currentTime+startT+0.08);
+    gain.gain.setValueAtTime(0.05, audioCtx.currentTime+startT);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+startT+0.12);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(audioCtx.currentTime+startT);
+    osc.stop(audioCtx.currentTime+startT+0.14);
+  }
+
+  // rising tension riser — builds into the explosão hit
+  function riser(startT, dur){
+    if(!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(90, audioCtx.currentTime+startT);
+    osc.frequency.exponentialRampToValueAtTime(340, audioCtx.currentTime+startT+dur);
+    gain.gain.setValueAtTime(0.0001, audioCtx.currentTime+startT);
+    gain.gain.exponentialRampToValueAtTime(0.06, audioCtx.currentTime+startT+dur*0.9);
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+startT+dur);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(audioCtx.currentTime+startT);
+    osc.stop(audioCtx.currentTime+startT+dur+0.05);
+
+    const src = audioCtx.createBufferSource();
+    src.buffer = noiseBuffer(dur);
+    const filter = audioCtx.createBiquadFilter();
+    filter.type='highpass'; filter.frequency.value=800;
+    const ngain = audioCtx.createGain();
+    ngain.gain.setValueAtTime(0.0001, audioCtx.currentTime+startT);
+    ngain.gain.exponentialRampToValueAtTime(0.05, audioCtx.currentTime+startT+dur);
+    src.connect(filter).connect(ngain).connect(audioCtx.destination);
+    src.start(audioCtx.currentTime+startT);
+  }
+
+  // big dramatic "boom" impact — the explosão hit
+  function boom(startT){
+    if(!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type='sine';
+    osc.frequency.setValueAtTime(150, audioCtx.currentTime+startT);
+    osc.frequency.exponentialRampToValueAtTime(38, audioCtx.currentTime+startT+0.5);
+    gain.gain.setValueAtTime(0.32, audioCtx.currentTime+startT);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+startT+0.7);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(audioCtx.currentTime+startT);
+    osc.stop(audioCtx.currentTime+startT+0.75);
+
+    const src = audioCtx.createBufferSource();
+    src.buffer = noiseBuffer(0.35);
+    const filter = audioCtx.createBiquadFilter();
+    filter.type='lowpass'; filter.frequency.value=1500;
+    const ngain = audioCtx.createGain();
+    ngain.gain.setValueAtTime(0.4, audioCtx.currentTime+startT);
+    ngain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+startT+0.35);
+    src.connect(filter).connect(ngain).connect(audioCtx.destination);
+    src.start(audioCtx.currentTime+startT);
+  }
+
+  // resolving major-chord chime — used for lua de mel & closing CTA
+  function chime(startT){
+    [523.25, 659.25, 784.0, 1046.5].forEach((f,i)=>{
+      tone(f, startT + i*0.12, 1.6 - i*0.15, 'sine', 0.05 - i*0.006);
+    });
+  }
+
+  function tone(freq, startT, dur, type, peakGain){
+    if(!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type||'sine';
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime+startT);
+    gain.gain.setValueAtTime(0, audioCtx.currentTime+startT);
+    gain.gain.linearRampToValueAtTime(peakGain, audioCtx.currentTime+startT+dur*0.12);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+startT+dur);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(audioCtx.currentTime+startT);
+    osc.stop(audioCtx.currentTime+startT+dur+0.05);
+  }
+
+  /* ============ TIMELINE ============ */
+  function resetVisualState(){
+    Object.values(scenes).forEach(s=>s.classList.remove('active'));
+    replayLayer.classList.remove('show');
+    videoTap.classList.remove('show');
+    try{ introVideo.pause(); introVideo.currentTime = 0; }catch(e){}
+    ['arc-tensao','arc-explosao','arc-luademel'].forEach(id=>{
+      const el = document.getElementById(id);
+      el.style.transition='none'; el.style.strokeDashoffset=251.2;
+    });
+    document.querySelectorAll('.bullets li, .lei-bullets li, .stat-bullets li, .tipo-row').forEach(li=>{
+      li.style.transition='none'; li.style.opacity=0; li.style.transform='translateX(-16px)';
+    });
+    document.querySelectorAll('.invis-tags span').forEach(s=>{
+      s.style.transition='none'; s.style.opacity=0; s.style.transform='scale(0.85)';
+    });
+    document.querySelectorAll('.phase-name, .lei-eyebrow, .lei-title, .hotline, .final-line, .title-eyebrow, .title-sub, .stat-eyebrow, .stat-number, .stat-caption, .stat-source, .tipos-eyebrow, .tipos-title, .invis-eyebrow, .invis-title, .invis-note, .cta-line, .cta-sub, .cta-signature, .hl-item')
+      .forEach(el=>{ el.style.transition='none'; el.style.opacity=0; });
+    document.getElementById('titleLine').style.transform = 'scaleX(0)';
+    document.querySelectorAll('.title-main span b').forEach(b=>{
+      b.style.transition='none'; b.style.transform='translateY(115%)'; b.style.opacity=0;
+    });
+  }
+
+  function playTimeline(){
+    clearAll();
+    resetVisualState();
+
+    progressFill.style.transition='none'; progressFill.style.width='0%';
+    requestAnimationFrame(()=>{
+      progressFill.style.transition=`width ${TOTAL}ms linear`;
+      progressFill.style.width='100%';
+    });
+
+    startedAt = Date.now();
+    timestampEl.textContent = `00:00 / ${fmtTime(TOTAL)}`;
+    tsInterval = setInterval(()=>{
+      const el = Date.now()-startedAt;
+      timestampEl.textContent = `${fmtTime(el)} / ${fmtTime(TOTAL)}`;
+      if(el >= TOTAL) clearInterval(tsInterval);
+    }, 200);
+
+    // === Chapter 1: Title (0 - 6.5s) ===
+    setChapter(1);
+    showScene('title');
+    whoosh(0.05, 0.6, 0.12);
+    revealEl(document.getElementById('t-eyebrow'), 250, 0.7);
+    at(600, ()=>{
+      document.querySelectorAll('#s-title .title-main span b').forEach((b,i)=>{
+        setTimeout(()=>{
+          b.style.transition='transform 0.9s cubic-bezier(.2,.8,.2,1), opacity 0.7s ease';
+          b.style.transform='translateY(0)'; b.style.opacity=1;
+          pop(0, 440+i*90);
+        }, i*450);
+      });
+    });
+    at(2600, ()=>{
+      const line = document.getElementById('titleLine');
+      line.style.transition='transform 0.6s ease';
+      line.style.transform='scaleX(1)';
+    });
+    at(3100, ()=>revealEl(document.getElementById('t-sub'), 0, 0.8));
+
+    // === Chapter 2: Stat (6.5s - 16s) — each fact gets its own beat to be read ===
+    at(6500, ()=>{
+      setChapter(2); showScene('stat'); whoosh(0.05,0.6,0.13);
+      revealEl(document.querySelector('.stat-eyebrow'), 150, 0.7);
+      at(500, ()=>{
+        document.getElementById('statNumber').style.transition='opacity 0.9s ease, transform 0.9s cubic-bezier(.2,.8,.2,1)';
+        document.getElementById('statNumber').style.opacity=1;
+        document.getElementById('statNumber').style.transform='scale(1)';
+        ding(0, 1.2);
+      });
+      at(1700, ()=>revealEl(document.querySelector('.stat-caption'), 0, 0.7));
+      at(3100, ()=>staggerList(document.getElementById('statList'), 'li', 0, 850, true));
+      at(6100, ()=>revealEl(document.querySelector('.stat-source'), 0, 0.6));
+    });
+
+    // === Chapter 3: Tipos de violência (16s - 26.5s) — 5 rows, one at a time ===
+    at(16000, ()=>{
+      setChapter(3); showScene('tipos'); whoosh(0.05,0.65,0.13);
+      revealEl(document.querySelector('.tipos-eyebrow'), 150, 0.7);
+      revealEl(document.querySelector('.tipos-title'), 550, 0.8);
+      at(1500, ()=>staggerList(document.getElementById('tiposGrid'), '.tipo-row', 0, 850, true));
+    });
+
+    // === Chapter 4: Violências invisíveis (26.5s - 35.5s) ===
+    at(26500, ()=>{
+      setChapter(4); showScene('invis'); whoosh(0.05,0.6,0.13);
+      revealEl(document.querySelector('.invis-eyebrow'), 150, 0.7);
+      revealEl(document.querySelector('.invis-title'), 550, 0.8);
+      at(1500, ()=>{
+        document.querySelectorAll('#invisTags span').forEach((s,i)=>{
+          setTimeout(()=>{
+            s.style.transition='opacity 0.5s ease, transform 0.5s cubic-bezier(.3,.9,.3,1.2)';
+            s.style.opacity=1; s.style.transform='scale(1)';
+            pop(0, 500+i*60);
+          }, i*520);
+        });
+      });
+      at(6000, ()=>revealEl(document.querySelector('.invis-note'), 0, 0.8));
+    });
+
+    // === Chapter 5: Ciclo - Tensão (35.5s - 47s) ===
+    at(35500, ()=>{
+      setChapter(5); showScene('tensao'); whoosh(0.05,0.6,0.13);
+      revealEl(document.querySelector('#s-tensao .phase-name'), 150, 0.8);
+      staggerList(document.getElementById('p1-list'), 'li', 900, 850, true);
+      at(700, ()=>{
+        const arc = document.getElementById('arc-tensao');
+        arc.style.transition='stroke-dashoffset 9.8s ease';
+        arc.style.strokeDashoffset = (251.2 - 251.2/3);
+      });
+      at(9800, ()=>riser(0, 1.6));
+    });
+
+    // === Chapter 6: Ciclo - Explosão (47s - 58.5s) ===
+    at(47000, ()=>{
+      setChapter(6); showScene('explosao');
+      boom(0.05);
+      revealEl(document.querySelector('#s-explosao .phase-name'), 150, 0.7);
+      staggerList(document.getElementById('p2-list'), 'li', 850, 850, true);
+      at(700, ()=>{
+        const arc = document.getElementById('arc-explosao');
+        arc.style.transition='stroke-dashoffset 0.6s ease';
+        arc.style.strokeDashoffset = (251.2 - 2*251.2/3);
+      });
+    });
+    at(56700, ()=>{
+      const flash = document.getElementById('flashRepeat');
+      flash.style.transition='opacity 0.2s ease'; flash.style.opacity=1;
+      ding(0, 0.8);
+      at(750, ()=>{ flash.style.transition='opacity 0.5s ease'; flash.style.opacity=0; });
+    });
+
+    // === Chapter 7: Ciclo - Lua de mel (58.5s - 70s) ===
+    at(58500, ()=>{
+      setChapter(7); showScene('luademel'); whoosh(0.05,0.6,0.1);
+      chime(0.3);
+      revealEl(document.querySelector('#s-luademel .phase-name'), 150, 0.8);
+      staggerList(document.getElementById('p3-list'), 'li', 900, 900, true);
+      at(700, ()=>{
+        const arc = document.getElementById('arc-luademel');
+        arc.style.transition='stroke-dashoffset 9.8s ease';
+        arc.style.strokeDashoffset = 0;
+      });
+    });
+
+    // === Chapter 8: Lei Maria da Penha (70s - 82s) ===
+    at(70000, ()=>{
+      setChapter(8); showScene('lei'); whoosh(0.05,0.65,0.13);
+      revealEl(document.querySelector('.lei-eyebrow'), 150, 0.7);
+      revealEl(document.querySelector('.lei-title'), 550, 0.8);
+      staggerList(document.getElementById('lei-list'), 'li', 1500, 850, true);
+      at(5000, ()=>{
+        document.querySelectorAll('#hotlineRow .hotline').forEach((h,i)=>{
+          setTimeout(()=>{
+            h.style.transition='opacity 0.7s ease, transform 0.7s ease';
+            h.style.opacity=1; h.style.transform='translateY(0)';
+            ding(0, 1);
+          }, i*450);
+        });
+      });
+    });
+
+    // === Closing CTA (82s - 90s) ===
+    at(82000, ()=>{
+      showScene('cta'); whoosh(0.05,0.7,0.14); chime(0.2);
+      revealEl(document.getElementById('ctaLine1'), 200, 0.9);
+      revealEl(document.getElementById('ctaSub'), 1400, 0.8);
+      at(3000, ()=>{
+        document.querySelectorAll('#ctaHotlines .hl-item').forEach((h,i)=>{
+          setTimeout(()=>{
+            h.style.transition='opacity 0.7s ease, transform 0.7s ease';
+            h.style.opacity=1; h.style.transform='translateY(0)';
+            pop(0, 600+i*100);
+          }, i*450);
+        });
+      });
+      at(4300, ()=>revealEl(document.getElementById('ctaSignature'), 0, 0.7));
+    });
+
+    at(TOTAL + 400, ()=>{ replayLayer.classList.add('show'); });
+  }
+
+  function playIntroVideo(onDone){
+    // shown right after tapping play, before the vinheta animations start
+    Object.values(scenes).forEach(s=>s.classList.remove('active'));
+    replayLayer.classList.remove('show');
+    videoTap.classList.remove('show');
+    chapterChip.style.opacity = 0;
+    progressFill.style.transition='none'; progressFill.style.width='0%';
+    timestampEl.textContent = '';
+
+    showScene('video');
+    videoTag.style.opacity = 0;
+    setTimeout(()=>{ videoTag.style.opacity = 1; }, 200);
+
+    try{ introVideo.currentTime = 0; }catch(e){}
+    const playPromise = introVideo.play();
+    if(playPromise && playPromise.catch){
+      playPromise.catch(()=>{
+        // autoplay-with-sound was blocked — ask for a tap to continue
+        videoTap.classList.add('show');
+      });
+    }
+
+    introVideo.onended = onDone;
+    videoTap.onclick = ()=>{
+      videoTap.classList.remove('show');
+      introVideo.play().catch(()=>{});
+    };
+  }
+
+  playBtn.addEventListener('click', ()=>{
+    ensureAudio();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    startLayer.classList.add('hidden');
+    playIntroVideo(()=>{ playTimeline(); });
+  });
+  replayBtn.addEventListener('click', ()=>{
+    playIntroVideo(()=>{ playTimeline(); });
+  });
+})();
+</script>
+</body>
+</html>
